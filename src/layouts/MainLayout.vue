@@ -56,6 +56,10 @@ const linkData = [
   {
     label: 'EditDraw',
     to: '/edit'
+  },
+  {
+    label: 'positionTest',
+    to: '/position-test'
   }
 ]
 

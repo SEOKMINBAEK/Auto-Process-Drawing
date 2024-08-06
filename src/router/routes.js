@@ -5,6 +5,7 @@ const routes = [
     children: [
       { path: 'auto', component: () => import('pages/AutoDrawing.vue') },
       { path: 'edit', component: () => import('pages/EditDrawing.vue') },
+      { path: 'position-test', component: () => import('pages/PositionTest.vue') },
     ]
   },
 
