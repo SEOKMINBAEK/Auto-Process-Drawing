@@ -60,6 +60,10 @@ const linkData = [
   {
     label: 'positionTest',
     to: '/position-test'
+  },
+  {
+    label: 'positionTest2',
+    to: '/position-test2'
   }
 ]
 

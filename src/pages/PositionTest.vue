@@ -26,6 +26,15 @@ onMounted(() => {
     }),
   });
 
+  // 계층분류도에 따른 시설 노드들 자동 배치
+  const 계층분류도 = 시설계층분류(연결관계);
+
+  시설도형생성(graph, 시설데이터);
+  시설도형배치(graph, 계층분류도);
+  시설전후단연결(graph, 연결관계);
+})
+
+const 시설도형생성 = (graph, 시설데이터) => {
   시설데이터.forEach((시설) => {
     const { id } = 시설;
 
@@ -47,10 +56,9 @@ onMounted(() => {
     시설.el = rect; // 시설객체에 엘리먼트 추가
     rect.addTo(graph); // 그래프에 추가
   });
+}
 
-  // 계층분류도에 따른 시설 노드들 자동 배치
-  const 계층분류도 = 시설계층분류(연결관계);
-
+const 시설도형배치 = (graph, 계층분류도) => {
   계층분류도.forEach((계층, index) => {
     const x좌표 = 100 + (도형넓이 + x축간격) * index;
 
@@ -71,7 +79,9 @@ onMounted(() => {
       시설노드.position(x좌표, y좌표);
     });
   })
+}
 
+const 시설전후단연결 = (graph, 연결관계) => {
   // 자동 배치된 노드 기준으로 링크 연결
   연결관계.forEach((관계) => {
     const { source, target } = 관계;
@@ -84,7 +94,7 @@ onMounted(() => {
 
     link.addTo(graph); // 그래프에 추가
   })
-})
+}
 
 const 시설계층분류 = (연결관계) => {
   // 부모-자식 관계 맵 만들기
@@ -109,7 +119,7 @@ const 시설계층분류 = (연결관계) => {
   const 계층분류도 = [];
 
   // BFS를 사용하여 계층별로 분리
-  const queue = 최상위전단시설.map(전단시설 => ({ node: 전단시설, level: 0 }));
+  const queue = 최상위전단시설.map(전단시설 => ({ node: 전단시설, level: 0 })); // 최초 최상위 계층을 큐에 추가
   while (queue.length > 0) { // 큐가 빌 때까지 반복
     const { node, level } = queue.shift();
 
@@ -162,9 +172,6 @@ const 시설데이터 = [
   {
     id: 'I-RST1035',
   },
-  {
-    id: 'I-RST1036',
-  },
 ];
 
 const 연결관계 = [
@@ -189,10 +196,6 @@ const 연결관계 = [
     target: 'C-RST1006',
   },
   {
-    source: 'I-RST1034',
-    target: 'I-RST1035',
-  },
-  {
     source: 'I-RST1035',
     target: 'C-RST1006',
   },
@@ -204,9 +207,5 @@ const 연결관계 = [
     source: 'C-RST1006',
     target: '#A201003',
   },
-  {
-    source: 'I-RST1036',
-    target: 'I-RST1035',
-  }
 ];
 </script>

@@ -6,6 +6,7 @@ const routes = [
       { path: 'auto', component: () => import('pages/AutoDrawing.vue') },
       { path: 'edit', component: () => import('pages/EditDrawing.vue') },
       { path: 'position-test', component: () => import('pages/PositionTest.vue') },
+      { path: 'position-test2', component: () => import('pages/PositionTest2.vue') },
     ]
   },
 
