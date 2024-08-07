@@ -155,7 +155,10 @@ const 계층도및연결관계생성 = () => {
       if (중복제거된시설.length) {
         시설계층도[depth].push(...중복제거된시설); // 해당 계층에 시설 추가
         중복제거된시설.forEach(({ id }) => 추가된시설.add(id)); // 추가된 시설에 추가
+      } else {
+        시설계층도[depth].length || 시설계층도.splice(depth, 1); // 해당 계층이 비어있으면 제거
       }
+
     }
   }
 
@@ -207,7 +210,7 @@ const 연결관계데이터 = {
   '#A201003': [{ id: 'C-RST1005' }, { id: 'C-RST1006' }, { id: 'I-RST1035' }],
   'C-RST1005': [{ id: 'I-RST1030' }, { id: 'I-RST1031' }, { id: 'I-RST1032' }, { id: 'I-RST1033' }, { id: 'I-RST1034' }, { id: 'C-RST1006' }],
   'C-RST1006': [{ id: 'C-RST1005' }, { id: 'I-RST1033' }, { id: 'I-RST1034' }, { id: 'I-RST1035' }],
-  // 'I-RST1034': [{ id: 'C-RST1005' }],
+  'I-RST1034': [{ id: 'C-RST1005' }],
 };
 
 // const 연결관계데이터 = {
