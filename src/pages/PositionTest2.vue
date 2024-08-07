@@ -1,6 +1,6 @@
 <template>
-  <q-page class="flex flex-center">
-    <div id="공정도"></div>
+  <q-page style="width: 100vw; height: 100vh; overflow-x: scroll;">
+    <div id="공정도" style="position: relative"></div>
   </q-page>
 </template>
 
@@ -14,21 +14,23 @@ onMounted(() => {
   const paper = new joint.dia.Paper({
     el: document.getElementById('공정도'), // 페이퍼를 표시할 엘리먼트 지정
     model: graph, // 그래프 연결
-    width: 1000, // 페이퍼 너비 설정
-    height: 1000, // 페이퍼 높이 설정
+    width: 컨테이너너비, // 페이퍼 너비 설정
+    height: 컨테이너높이, // 페이퍼 높이 설정
     gridSize: 1, // 격자 크기 설정
     background: { // 배경 설정
       color: 'skyblue' // 배경 색상 설정
     },
     defaultLink: new joint.shapes.standard.Link({ // 기본 링크 설정
       attrs: { line: { stroke: 'black', strokeWidth: 2 } }, // 링크 속성 설정
-      router: { name: 'manhattan' }, // 맨하탄 라우터 설정
+      router: { name: 라우터 }, // 맨하탄 라우터 설정
     }),
   });
 
   // const { 시설계층도, 시설연결관계 } = 계층도및연결관계생성();
   const { 시설계층도, 시설연결관계 } = 계층도및연결관계생성();
   console.log({ 시설계층도, 시설연결관계 });
+
+  graph.on('change:position add remove', () => updatePaperSize(graph, paper));
 
   시설도형생성(graph, 시설계층도);
   시설도형배치(graph, 시설계층도, 시설연결관계);
@@ -60,7 +62,6 @@ const 시설도형생성 = (graph, 시설계층도) => {
     });
   })
 };
-
 
 const 시설도형배치 = (graph, 시설계층도, 시설연결관계) => {
   시설계층도.reverse(); // 계층 역순으로 정렬
@@ -95,13 +96,34 @@ const 시설전후단연결 = (graph, 시설연결관계) => {
     const link = new joint.shapes.standard.Link({ // 링크 생성
       source: { id: source }, // 소스 설정
       target: { id: target }, // 타겟 설정
-      router: { name: 'manhattan' } // 직각 설정 // metro 옵션은 직선으로 교차점 회피
+      router: { name: 라우터, args: 라우터옵션 } // 직각 설정 // metro 옵션은 직선으로 교차점 회피
     });
 
     link.addTo(graph); // 그래프에 추가
   })
 }
 
+const updatePaperSize = (graph, paper) => { // 그래프의 요소가 변경될 때마다 paper 크기 업데이트
+  const elements = graph.getElements();
+  if (elements.length === 0) return;
+
+  const boundingBox = elements.reduce((bbox, element) => {
+    const elementBBox = element.getBBox();
+    return bbox.union(elementBBox);
+  }, elements[0].getBBox());
+
+  const newWidth = Math.max(boundingBox.width + 200, 컨테이너너비);
+  const newHeight = Math.max(boundingBox.height + 200, 컨테이너높이);
+
+  paper.setDimensions(newWidth, newHeight);
+};
+
+const 컨테이너높이 = '100vh';
+const 컨테이너너비 = '100vw';
+const 라우터 = 'manhattan'; // normal, manhattan, metro, orthogonal, oneSide, rightAngle
+const 라우터옵션 = {
+  step: 10, // 그리드사이즈와 맞추기
+}
 const 도형넓이 = 100;
 const 도형높이 = 40;
 const x축간격 = 100;
@@ -119,6 +141,8 @@ const 계층도및연결관계생성 = () => {
     const { target, depth } = 큐.shift(); // 큐에서 하나 꺼내기
     const 연결된전단시설 = 연결관계데이터[target] || []; // 연결된 전단 시설 가져오기
 
+    console.log({큐, target, 연결된전단시설, 시설계층도})
+
     if (연결된전단시설.length) { // 전단 시설이 있으면
       if (!시설계층도[depth]) { 시설계층도[depth] = [] }; // 해당 계층에 배열이 없으면 생성
 
@@ -126,16 +150,12 @@ const 계층도및연결관계생성 = () => {
         시설연결관계.push({ source: id, target }); // 연결관계 데이터 추가
         추가된시설.has(id) || 큐.push({ target: id, depth: depth + 1 }); // 이미 추가된 시설이 아니면 큐에 추가
       });
-
       const 중복제거된시설 = 연결된전단시설.filter(({ id }) => !추가된시설.has(id)); // 이미 추가된 시설 제외
 
       if (중복제거된시설.length) {
         시설계층도[depth].push(...중복제거된시설); // 해당 계층에 시설 추가
         중복제거된시설.forEach(({ id }) => 추가된시설.add(id)); // 추가된 시설에 추가
-      } else {
-        시설계층도.splice(depth, 1); // 해당 계층이 비어있으면 제거
       }
-
     }
   }
 
@@ -184,9 +204,20 @@ const 계층도및연결관계생성 = () => {
 // }
 
 const 연결관계데이터 = {
-  '#A201003': [{ id: 'C-RST1005' }, { id: 'C-RST1006' }],
+  '#A201003': [{ id: 'C-RST1005' }, { id: 'C-RST1006' }, { id: 'I-RST1035' }],
   'C-RST1005': [{ id: 'I-RST1030' }, { id: 'I-RST1031' }, { id: 'I-RST1032' }, { id: 'I-RST1033' }, { id: 'I-RST1034' }, { id: 'C-RST1006' }],
-  'C-RST1006': [{ id: 'I-RST1033' }, { id: 'I-RST1034' }, { id: 'I-RST1035' }, { id: 'C-RST1005' }],
-  'I-RST1034': [{ id: 'C-RST1005' }],
+  'C-RST1006': [{ id: 'C-RST1005' }, { id: 'I-RST1033' }, { id: 'I-RST1034' }, { id: 'I-RST1035' }],
+  // 'I-RST1034': [{ id: 'C-RST1005' }],
 };
+
+// const 연결관계데이터 = {
+//   '#A201003': [{ id: 'C-RST1005' }],
+//   'C-RST1005': [{ id: 'C-RST1006' }],
+//   'C-RST1006': [{ id: 'I-RST1030' }],
+//   'I-RST1030': [{ id: 'I-RST1031' }],
+//   'I-RST1031': [{ id: 'I-RST1032' }],
+//   'I-RST1032': [{ id: 'I-RST1033' }],
+//   'I-RST1033': [{ id: 'I-RST1034' }],
+//   'I-RST1034': [{ id: 'I-RST1035' }],
+// };
 </script>
