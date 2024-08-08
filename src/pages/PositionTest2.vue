@@ -1,6 +1,9 @@
 <template>
   <q-page style="width: 100vw; height: 100vh; overflow-x: scroll;">
     <div id="공정도" style="position: relative"></div>
+    <q-btn id="업로드" color="primary" @click="svg업로드">SVG 업로드</q-btn>
+    <q-btn id="업로드" color="primary" @click="svg다운로드">SVG 다운로드</q-btn>
+    <div id="공정도2" style="position: relative; width: 1000px; height: 1000px;"></div>
   </q-page>
 </template>
 
@@ -37,6 +40,23 @@ onMounted(() => {
   시설전후단연결(graph, 시설연결관계);
 })
 
+const svg업로드 = () => {
+  const svg = document.querySelector('#공정도 > svg');
+  const svgString = new XMLSerializer().serializeToString(svg); // xml 데이터로 직렬화 -> 문자열로 변환
+  localStorage.setItem('svg', svgString);
+}
+
+const svg다운로드 = () => {
+  const svg = localStorage.getItem('svg'); // xml 문자열 가져오기
+  const doc = new DOMParser().parseFromString(svg, 'image/svg+xml'); // xml 문자열 파싱 -> DOM 문서 객체 생성 (MIME 타입 지정)
+  const svgElement = doc.documentElement;
+  console.log(svgElement);
+  const 공정도2 = document.getElementById('공정도2');
+  공정도2.innerHTML = ''; // 기존 내용을 지우기
+  공정도2.appendChild(svgElement);
+  localStorage.removeItem('svg');
+}
+
 const 시설도형생성 = (graph, 시설계층도) => {
   시설계층도.forEach((계층) => {
     계층.forEach((시설) => {
@@ -48,7 +68,8 @@ const 시설도형생성 = (graph, 시설계층도) => {
         size: { width: 100, height: 40 }, // 크기 설정
         attrs: { // 속성 설정
           body: { // 바디 속성 설정
-            fill: 'lightgray'
+            fill: 'lightgray',
+            'data-test': 'test', // <g> 태그 안에 <rect> 요소에 data-attrubute 추가
           },
           label: { // 라벨 속성 설정
             text: id,
@@ -96,7 +117,13 @@ const 시설전후단연결 = (graph, 시설연결관계) => {
     const link = new joint.shapes.standard.Link({ // 링크 생성
       source: { id: source }, // 소스 설정
       target: { id: target }, // 타겟 설정
-      router: { name: 라우터, args: 라우터옵션 } // 직각 설정 // metro 옵션은 직선으로 교차점 회피
+      router: { name: 라우터, args: 라우터옵션 }, // 직각 설정 // metro 옵션은 직선으로 교차점 회피
+      attr: {
+        line: {
+          stroke: 'black',
+          strokeWidth: 2,
+        },
+      }
     });
 
     link.addTo(graph); // 그래프에 추가
@@ -118,8 +145,8 @@ const updatePaperSize = (graph, paper) => { // 그래프의 요소가 변경될 
   paper.setDimensions(newWidth, newHeight);
 };
 
-const 컨테이너높이 = '100vh';
-const 컨테이너너비 = '100vw';
+const 컨테이너높이 = 1000;
+const 컨테이너너비 = 1000;
 const 라우터 = 'manhattan'; // normal, manhattan, metro, orthogonal, oneSide, rightAngle
 const 라우터옵션 = {
   step: 10, // 그리드사이즈와 맞추기
@@ -165,52 +192,11 @@ const 계층도및연결관계생성 = () => {
   return { 시설계층도, 시설연결관계 };
 }
 
-// const 계층도및연결관계생성 = () => {
-//   const 시설계층도 = [[ROOT]];
-//   const 시설연결관계 = [];
-//   const 탐색한시설 = [];
-//   const 추가된시설 = new Set([ROOT.id]);
-
-//   const 전단시설불러오기 = (TARGET = ROOT.id, depth = 1) => {
-//     탐색한시설.push(TARGET);
-//     const 연결된전단시설 = 연결관계데이터[TARGET] || [];
-//     console.log({TARGET, depth, 연결된전단시설})
-//     if (연결된전단시설.length) { // 전단 시설이 있으면
-
-//       if (!시설계층도[depth]) { 시설계층도[depth] = [] }; // 해당 계층에 배열이 없으면 생성
-
-//       const 중복제거된시설 = 차집합(연결된전단시설, 추가된시설); // 이미 추가된시설 제외
-//       시설계층도[depth].push(...중복제거된시설); // 해당 계층에 시설 추가
-//       연결된전단시설.forEach(({ id }) => 추가된시설.add(id)); // 추가된시설에 추가
-
-//       연결된전단시설.forEach(({ id }) => {
-//         console.log({ id }, 추가된시설.has(id));
-//         시설연결관계.push({ source: id, target: TARGET }); // 연결관계 데이터 추가
-//         if (탐색한시설.includes(id)) {
-//           return;
-//         } else {
-//           전단시설불러오기(id, depth + 1);
-//         }
-
-//       });
-//     } else {
-//       return;
-//     }
-//   }
-//   전단시설불러오기();
-
-//   return { 시설계층도, 시설연결관계 };
-// }
-
-// const 차집합 = (연결된전단시설, 추가된시설) => { // 연결된전단시설 - 추가된시설
-//   return 연결된전단시설.filter(({ id }) => !추가된시설.has(id));
-// }
-
 const 연결관계데이터 = {
-  '#A201003': [{ id: 'C-RST1005' }, { id: 'C-RST1006' }, { id: 'I-RST1035' }],
+  '#A201003': [{ id: 'C-RST1005' }, { id: 'C-RST1006' }],
   'C-RST1005': [{ id: 'I-RST1030' }, { id: 'I-RST1031' }, { id: 'I-RST1032' }, { id: 'I-RST1033' }, { id: 'I-RST1034' }, { id: 'C-RST1006' }],
-  'C-RST1006': [{ id: 'C-RST1005' }, { id: 'I-RST1033' }, { id: 'I-RST1034' }, { id: 'I-RST1035' }],
-  'I-RST1034': [{ id: 'C-RST1005' }],
+  'C-RST1006': [{ id: 'C-RST1005' }, { id: 'I-RST1030' }, { id: 'I-RST1033' }, { id: 'I-RST1034' }, { id: 'I-RST1035' }],
+  // 'I-RST1034': [{ id: 'C-RST1005' }],
 };
 
 // const 연결관계데이터 = {

@@ -81,8 +81,10 @@ onMounted(() => {
     const tools = new joint.dia.ToolsView({ // 링크도구 생성
       tools: [ // 도구 설정
         new joint.linkTools.Vertices(), // 버텍스 도구
-        // new joint.linkTools.SourceAnchor(), // 소스 앵커 도구
-        // new joint.linkTools.TargetAnchor(), // 타겟 앵커 도구
+        new joint.linkTools.SourceAnchor(), // 소스 앵커 도구
+        new joint.linkTools.SourceArrowhead(), // 소스 화살표 도구, 기존 소스 연결 분리 가능
+        new joint.linkTools.TargetAnchor(), // 타겟 앵커 도구
+        new joint.linkTools.TargetArrowhead(), // 타겟 화살표 도구, 기존 타겟 연결 분리 가능
         new joint.linkTools.Segments(), // 세그먼트 도구(링크의 선분)
         new joint.linkTools.Boundary(), // 바운더리 도구(경로 주변의 경계)
         new joint.linkTools.Remove(), // 삭제 도구
